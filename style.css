@@ -24,7 +24,7 @@
 }
 
 .memus button:hover{
-    background-color: red;
+    background-color: beige;
 }
 
 .news-image-size{
@@ -34,6 +34,6 @@
 }
 
 .news {
-    border-bottom: 3px solid red;
+    border-bottom: 3px solid black;
     
 }

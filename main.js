@@ -1,4 +1,6 @@
 let news = [];
+let page = 1;
+let total_pages = 0;
 let menus = document.querySelectorAll(".memus button");
 menus.forEach((menu) =>
     menu.addEventListener("click", (event) => getNewsByTopic(event))
@@ -15,17 +17,23 @@ const getNews = async () => {
         let header = new Headers({
             "x-api-key": "op376wa5UOFHU8xA-JvoLvPz_-_fCSnoGi9l6jksb9c",
         });
-
+        url.searchParams.set('page',page); //&page 값을 쿼리에 추가하기 
+        console.log(url, "url이래")
         let response = await fetch(url,{ headers: header }); // ajax, fetch , http
         let data = await response.json();
         if (response.status == 200) {
             if (data.total_hits == 0){
                 throw new Error("검색된 결과값이 없습니다.")
             }
+            console.log("받는 데이터가 뭐지?" , data)
             news = data.articles;
+            total_pages = data.total_pages;
+            page = data.page;
             console.log(news);
+            
             render();
-
+            pagenation();
+            
 
         } else {
             throw new Error(data.message)
@@ -108,5 +116,59 @@ const errorREnder = (message) => {
 
 }
 
+const pagenation = () => {
+    let pagenationHTML = ``
+    //total page
+    // page
+    // page group
+    let pageGroup = Math.ceil(page/5)
+    // last
+    let last = pageGroup*5
+    // first
+    if (last > total_pages){
+        last = total_pages
+    }
+    let first = last -4 <= 0 ? 1 : last - 4
+    if (first >= 6 ){
+        pagenationHTML = `<li class="page-item" onclick="moveTopage(1)">
+                        <a class="page-link" href='#js-bottom'>&lt;&lt;</a>
+                      </li>
+                      <li class="page-item" onclick="moveTopage(${page - 1})">
+                        <a class="page-link" href='#js-bottom'>&lt;</a>
+                      </li>`;
+    }
+    // first ~ last 페이지 프린트
+
+    //totalpage가 3일경우 3개의 페이지만 프린트하는거
+    //<< >> 이버튼 만들어주기 만들고, 그것이 맨 처음, 마지막으로 이동하게끔 만들기
+    // 내가 그룹1일때 << < 이버튼이 없고 마지막 그룹일때 >> > 이 버튼 없음
+
+    for(let i= first; i<=last; i++){
+        pagenationHTML += `<li class="page-item ${page == i? "active": ""}"><a class="page-link" href="#" onclick = "moveTopage(${i})">${i}</a></li>`
+                                                // 삼항연산자 이용해서 현재 페이지 표시해주기
+
+    }
+    if (last <total_pages) {
+        pagenationHTML += `<li class="page-item">
+    <a class="page-link" href="#" aria-label="Next" onclick = "moveTopage(${page+1})">
+      <span aria-hidden="true">&gt;</span>
+    </a>
+  </li>
+  <li class="page-item" onclick="moveTopage(${total_pages})">
+                        <a class="page-link" href='#js-bottom'>&gt;&gt;</a>
+                       </li>`
+    }
+    
+
+
+    document.querySelector(".pagination").innerHTML = pagenationHTML;
+}
+
+const moveTopage = (pageNum) => {
+    //1. 이동하고 싶은 페이지 알고
+    page = pageNum
+    //2. 이동하고 싶은 페이지를 가지고 api 다시 호출
+    getNews()
+}
 searchButton.addEventListener("click", getNewsByKeyword);
 getLastestNews();
